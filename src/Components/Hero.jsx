@@ -267,10 +267,11 @@ import { LuLeaf } from "react-icons/lu";
 import { FaGlobe } from "react-icons/fa";
 import { FiUsers } from "react-icons/fi";
 
+
 import { slideFromLeft, slideFromRight } from "../animations/Animation";
 
 import Coke3DCan from "../ThreeD/Coke3DCan";
-import LiquidBackground from "../ThreeD/LiquidBackground";
+
 
 const Hero = () => {
   const container = useRef(null);
@@ -370,9 +371,11 @@ const Hero = () => {
 
   return (
     <section
-      ref={container}
+      ref={container}a
       className="relative min-h-screen w-full bg-black overflow-hidden"
     >
+
+   
       {/* =========================================
           LIQUID BACKGROUND
           ========================================= */}
@@ -392,7 +395,7 @@ const Hero = () => {
             }}
             frameloop="always"
           >
-            <LiquidBackground motionRef={motionRef} />
+           
           </Canvas>
         )}
       </div>
@@ -463,6 +466,7 @@ const Hero = () => {
             ml-4
             gap-2
             w-[30%]
+            h-[25vw]
           "
         >
           <p className="text-white">REAL TASTE</p>
@@ -528,14 +532,13 @@ const Hero = () => {
           className="
             relative
             z-30
-            w-[35vw]
+            w-[20vw]
             h-[80vw]
-            top-[-30vw]
-            left-[-5vw]
+            top-[-30vw]       
           "
         >
           {webglReady && (
-           <Canvas
+           <Canvas 
   camera={{
     position: [0, 0, 13],
     fov: 35,
