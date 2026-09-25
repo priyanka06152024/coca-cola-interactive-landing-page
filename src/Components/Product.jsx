@@ -539,12 +539,12 @@ const Product = () => {
 
         <div
           className="
-            product-slide
-            absolute
-            inset-0
-            z-[60]
-            bg-[#EAEAE5]
-          "
+    product-slide
+    absolute
+    inset-0
+    z-[60]
+    bg-[#EAEAE5]
+  "
         >
           {/* Header */}
 
@@ -563,19 +563,90 @@ const Product = () => {
           <div className="absolute left-[50%] top-[12%] h-[76%] w-px bg-black/10" />
 
           {/* =====================================================
-              LIGHT COKE — 3D MODEL
-          ===================================================== */}
+      LEFT — CONTENT
+  ===================================================== */}
+
+          <div className="absolute left-[10vw] top-1/2 z-20 -translate-y-1/2">
+            <p
+              className="
+        mb-5
+        text-[10px]
+        uppercase
+        tracking-[0.35em]
+        text-red-600/70
+      "
+            >
+              Coca-Cola Light
+            </p>
+
+            <h2
+              className="
+        font-['Bebas_Neue']
+        text-[9vw]
+        leading-[0.8]
+        tracking-[-0.03em]
+        text-black
+      "
+            >
+              LIGHT
+            </h2>
+
+            <p
+              className="
+        mt-7
+        max-w-[280px]
+        text-[12px]
+        leading-5
+        text-black/45
+      "
+            >
+              A lighter way to enjoy the familiar Coca-Cola experience.
+            </p>
+
+            <button
+              className="
+        group
+        mt-8
+        flex
+        items-center
+        gap-3
+        border-b
+        border-black/25
+        pb-2
+        text-[9px]
+        uppercase
+        tracking-[0.3em]
+        text-black
+      "
+            >
+              EXPLORE
+              <ArrowUpRight
+                size={14}
+                strokeWidth={1.5}
+                className="
+          transition-transform
+          duration-300
+          group-hover:translate-x-1
+          group-hover:-translate-y-1
+        "
+              />
+            </button>
+          </div>
+
+          {/* =====================================================
+      RIGHT — LIGHT COKE 3D MODEL
+  ===================================================== */}
 
           <div
             className="
-              absolute
-              left-[10vw]
-              top-1/2
-              z-10
-              h-[78vh]
-              w-[38vw]
-              -translate-y-1/2
-            "
+      absolute
+      right-[7vw]
+      top-1/2
+      z-10
+      h-[78vh]
+      w-[38vw]
+      -translate-y-1/2
+    "
           >
             <Canvas
               camera={{
@@ -607,87 +678,38 @@ const Product = () => {
             </Canvas>
           </div>
 
-          {/* Content */}
-
-          <div className="absolute right-[11vw] top-1/2 z-20 -translate-y-1/2">
-            <p className="mb-5 text-[10px] uppercase tracking-[0.35em] text-red-600/70">
-              Coca-Cola Light
-            </p>
-
-            <h2
-              className="
-                font-['Bebas_Neue']
-                text-[9vw]
-                leading-[0.8]
-                tracking-[-0.03em]
-                text-black
-              "
-            >
-              LIGHT
-            </h2>
-
-            <p className="mt-7 max-w-[280px] text-[12px] leading-5 text-black/45">
-              A lighter way to enjoy the familiar Coca-Cola experience.
-            </p>
-
-            <button
-              className="
-                group
-                mt-8
-                flex
-                items-center
-                gap-3
-                border-b
-                border-black/25
-                pb-2
-                text-[9px]
-                uppercase
-                tracking-[0.3em]
-                text-black
-              "
-            >
-              EXPLORE
-              <ArrowUpRight
-                size={14}
-                strokeWidth={1.5}
-                className="
-                  transition-transform
-                  duration-300
-                  group-hover:translate-x-1
-                  group-hover:-translate-y-1
-                "
-              />
-            </button>
-          </div>
-
-          {/* Bottom */}
+          {/* =====================================================
+      BOTTOM
+  ===================================================== */}
 
           <p
             className="
-              absolute
-              bottom-8
-              left-8
-              text-[9px]
-              tracking-[0.3em]
-              text-black/25
-            "
+      absolute
+      bottom-8
+      left-8
+      text-[9px]
+      tracking-[0.3em]
+      text-black/25
+    "
           >
             LIGHT • CRISP • REFRESHING
           </p>
 
-          {/* Background Word */}
+          {/* =====================================================
+      BACKGROUND WORD
+  ===================================================== */}
 
           <div
             className="
-              pointer-events-none
-              absolute
-              right-[-3vw]
-              top-[12vh]
-              font-['Bebas_Neue']
-              text-[25vw]
-              leading-none
-              text-black/[0.025]
-            "
+      pointer-events-none
+      absolute
+      right-[-3vw]
+      top-[12vh]
+      font-['Bebas_Neue']
+      text-[25vw]
+      leading-none
+      text-black/[0.025]
+    "
           >
             LIGHT
           </div>
