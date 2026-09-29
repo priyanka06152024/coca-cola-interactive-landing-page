@@ -117,15 +117,7 @@ const Product = () => {
         >
           {/* Header */}
 
-          <header className="absolute left-8 right-8 top-8 z-30 flex justify-between">
-            <p className="text-[10px] tracking-[0.35em] text-black/50">
-              COCA-COLA
-            </p>
-
-            <p className="text-[10px] tracking-[0.25em] text-black/30">
-              02 / 06
-            </p>
-          </header>
+          
           <div className="absolute left-[50%] top-[12%] h-[76%] w-px bg-black/10" />
 
           {/* Can */}
@@ -214,17 +206,7 @@ const Product = () => {
             bg-[#F3E5E5]
           "
         >
-          {/* Header */}
-
-          <header className="absolute left-8 right-8 top-8 z-30 flex justify-between">
-            <p className="text-[10px] tracking-[0.35em] text-black/50">
-              COCA-COLA
-            </p>
-
-            <p className="text-[10px] tracking-[0.25em] text-black/30">
-              03 / 06
-            </p>
-          </header>
+          
           <div className="absolute left-[50%] top-[12%] h-[76%] w-px bg-black/10" />
 
           {/* Can */}
@@ -320,17 +302,7 @@ const Product = () => {
             bg-[#EDE7DD]
           "
         >
-          {/* Header */}
-
-          <header className="absolute left-8 right-8 top-8 z-30 flex justify-between">
-            <p className="text-[10px] tracking-[0.35em] text-black/50">
-              COCA-COLA
-            </p>
-
-            <p className="text-[10px] tracking-[0.25em] text-black/30">
-              04 / 06
-            </p>
-          </header>
+         
           <div className="absolute left-[50%] top-[12%] h-[76%] w-px bg-black/10" />
 
           {/* Can */}
@@ -438,17 +410,7 @@ const Product = () => {
             bg-[#F1F0E4]
           "
         >
-          {/* Header */}
-
-          <header className="absolute left-8 right-8 top-8 z-30 flex justify-between">
-            <p className="text-[10px] tracking-[0.35em] text-black/50">
-              COCA-COLA
-            </p>
-
-            <p className="text-[10px] tracking-[0.25em] text-black/30">
-              05 / 06
-            </p>
-          </header>
+         
 
           <div className="absolute left-[50%] top-[12%] h-[76%] w-px bg-black/10" />
 
@@ -546,18 +508,7 @@ const Product = () => {
     bg-[#EAEAE5]
   "
         >
-          {/* Header */}
-
-          <header className="absolute left-8 right-8 top-8 z-30 flex justify-between">
-            <p className="text-[10px] tracking-[0.35em] text-black/50">
-              COCA-COLA
-            </p>
-
-            <p className="text-[10px] tracking-[0.25em] text-black/30">
-              06 / 06
-            </p>
-          </header>
-
+         
           {/* Fine Line */}
 
           <div className="absolute left-[50%] top-[12%] h-[76%] w-px bg-black/10" />
