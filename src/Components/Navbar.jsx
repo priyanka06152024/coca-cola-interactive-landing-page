@@ -26,7 +26,7 @@ const Navbar = () => {
         {/* Logo */}
         <div
           ref={leftRef}
-          className="flex h-[54px] w-[170px] items-center justify-center overflow-hidden rounded-full bg-white px-5 shadow-sm"
+          className="flex h-[54px] w-[170px] items-center justify-center overflow-hidden rounded-full bg-red-600 px-5 shadow-sm"
         >
           <img
             src={cokeLogo}
