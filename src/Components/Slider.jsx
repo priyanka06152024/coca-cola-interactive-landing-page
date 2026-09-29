@@ -3,30 +3,42 @@ import React, { useRef } from "react";
 import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import bgImage from "../assets/slider-bg.avif";
+import { ArrowUpRight } from "lucide-react";
 
 gsap.registerPlugin(ScrollTrigger);
 
 const Slider = () => {
   const sectionRef = useRef(null);
+  const verticalRef = useRef(null);
   const trackRef = useRef(null);
 
-  useGSAP(() => {
-    const section = sectionRef.current;
-    const track = trackRef.current;
+  useGSAP(
+    () => {
+      const section = sectionRef.current;
+      const vertical = verticalRef.current;
+      const track = trackRef.current;
 
-    if (!section || !track) return;
+      if (!section || !vertical || !track) return;
 
-    // ==========================================
-    // 1. BOTTOM → TOP
-    // ==========================================
+      // ==========================================
+      // INITIAL STATE
+      // ==========================================
 
-    gsap.fromTo(
-      track,
-      {
+      gsap.set(vertical, {
         yPercent: 100,
-      },
-      {
+        force3D: true,
+      });
+
+      gsap.set(track, {
+        x: 0,
+        force3D: true,
+      });
+
+      // ==========================================
+      // 1. BOTTOM → TOP ENTRY
+      // ==========================================
+
+      gsap.to(vertical, {
         yPercent: 0,
         ease: "none",
 
@@ -34,33 +46,76 @@ const Slider = () => {
           trigger: section,
           start: "top bottom",
           end: "top top",
-          scrub: 1.2,
+          scrub: 0.4,
           invalidateOnRefresh: true,
         },
-      }
-    );
+      });
 
-    // ==========================================
-    // 2. HORIZONTAL SCROLL
-    // ==========================================
+      // ==========================================
+      // 2. HORIZONTAL SLIDER
+      // ==========================================
 
-    gsap.to(track, {
-      xPercent: -60,
-      ease: "none",
+      gsap.to(track, {
+        x: () => {
+          const distance =
+            track.scrollWidth - window.innerWidth;
 
-      scrollTrigger: {
-        trigger: section,
-        start: "top top",
-        end: () => `+=${window.innerWidth * 4}`,
-        scrub: 1.5,
-        pin: true,
-        anticipatePin: 1,
-        invalidateOnRefresh: true,
-      },
-    });
+          return -Math.max(0, distance);
+        },
 
-    ScrollTrigger.refresh();
-  }, []);
+        ease: "none",
+
+        scrollTrigger: {
+          trigger: section,
+
+          start: "top top",
+
+          end: () => {
+            const distance =
+              track.scrollWidth - window.innerWidth;
+
+            return `+=${Math.max(0, distance)}`;
+          },
+
+          /*
+            0.5 gives smooth interpolation
+            without making the scroll feel delayed.
+          */
+          scrub: 0.5,
+
+          pin: true,
+
+          /*
+            Small value avoids the pin feeling
+            like it is jumping into position.
+          */
+          anticipatePin: 0.5,
+
+          pinSpacing: true,
+
+          invalidateOnRefresh: true,
+        },
+      });
+
+      // ==========================================
+      // INITIAL REFRESH
+      // ==========================================
+
+      requestAnimationFrame(() => {
+        ScrollTrigger.refresh();
+      });
+    },
+
+    {
+      scope: sectionRef,
+
+      /*
+        Prevents GSAP from creating
+        duplicate animations in React.
+      */
+      revertOnUpdate: true,
+    }
+  );
 
   return (
     <section
@@ -68,352 +123,529 @@ const Slider = () => {
       className="
         relative
         z-30
-        -mt-[100vh]
         h-screen
         w-full
         overflow-hidden
+        bg-[#EAEAE5]
       "
-      style={{
-        backgroundImage: `url(${bgImage})`,
-        backgroundSize: "cover",
-        backgroundPosition: "center",
-        backgroundRepeat: "no-repeat",
-      }}
     >
-      {/* subtle dark overlay */}
-      <div className="pointer-events-none absolute inset-0 z-0 bg-black/15" />
+      {/* ==================================================
+          BACKGROUND
+      ================================================== */}
+
+      <div className="pointer-events-none absolute inset-0 z-0">
+        <div
+          className="
+            absolute
+            left-1/2
+            top-1/2
+            -translate-x-1/2
+            -translate-y-1/2
+            whitespace-nowrap
+            font-['Bebas_Neue']
+            text-[25vw]
+            leading-none
+            tracking-[-0.06em]
+            text-black/[0.035]
+          "
+        >
+          COCA
+        </div>
+
+        <div
+          className="
+            absolute
+            left-[6vw]
+            right-[6vw]
+            top-8
+            h-px
+            bg-black/10
+          "
+        />
+
+        <div
+          className="
+            absolute
+            bottom-8
+            left-[6vw]
+            right-[6vw]
+            h-px
+            bg-black/10
+          "
+        />
+      </div>
+
+      {/* ==================================================
+          VERTICAL ENTRY
+      ================================================== */}
 
       <div
-        ref={trackRef}
+        ref={verticalRef}
         className="
           relative
-          z-10
-          flex
-          h-screen
-          w-[500vw]
-          text-white
+          h-full
+          w-full
+          will-change-transform
         "
       >
-
-        {/* =====================================================
-            SLIDE 1 — ORIGINAL
-        ===================================================== */}
+        {/* ==================================================
+            HORIZONTAL TRACK
+        ================================================== */}
 
         <div
+          ref={trackRef}
           className="
             relative
+            z-10
             flex
             h-screen
-            w-screen
-            shrink-0
-            items-center
-            justify-center
-            overflow-hidden
+            w-max
+            text-black
+            will-change-transform
           "
         >
-          {/* small top text */}
+          {/* ==================================================
+              SLIDE 1
+          ================================================== */}
 
-          <div className="absolute left-[6vw] top-[7vh] flex items-center gap-3">
-            <span className="h-1.5 w-1.5 rounded-full bg-red-500" />
-
-            <span className="font-['Bebas_Neue'] text-[11px] tracking-[0.45em] text-white/70">
-              COCA-COLA / ORIGINAL
-            </span>
-          </div>
-
-          {/* main content */}
-
-          <div className="relative z-10 text-center">
-
-            <p className="mb-5 font-['Bebas_Neue'] text-[11px] tracking-[0.55em] text-white/60">
-              THE ORIGINAL
-            </p>
-
-            <h1
-              className="
-                font-['Bebas_Neue']
-                text-[15vw]
-                leading-[0.72]
-                tracking-[-0.045em]
-                text-white
-              "
-            >
-              DRINK
-            </h1>
-
-            <div className="mx-auto mt-7 h-[2px] w-16 bg-red-500" />
-
-            <p className="mx-auto mt-6 max-w-[360px] text-[13px] leading-6 tracking-wide text-white/65">
-              The unmistakable taste that brings people together.
-            </p>
-
-          </div>
-
-          {/* subtle background typography */}
-
-         
-
-          {/* slide number */}
-
-          <span
+          <div
             className="
-              absolute
-              bottom-[6vh]
-              right-[6vw]
-              font-['Bebas_Neue']
-              text-[11px]
-              tracking-[0.35em]
-              text-white/40
+              relative
+              flex
+              h-screen
+              w-screen
+              shrink-0
+              items-center
+              justify-center
+              overflow-hidden
             "
           >
-            01
-          </span>
-        </div>
+           
 
-
-        {/* =====================================================
-            SLIDE 2 — SCAN
-        ===================================================== */}
-
-        <div
-          className="
-            relative
-            flex
-            h-screen
-            w-screen
-            shrink-0
-            items-center
-            justify-center
-            overflow-hidden
-          "
-        >
-          <div className="absolute left-[6vw] top-[7vh] flex items-center gap-3">
-            <span className="h-1.5 w-1.5 rounded-full bg-red-500" />
-
-            <span className="font-['Bebas_Neue'] text-[11px] tracking-[0.45em] text-white/70">
-              DISCOVER SOMETHING MORE
-            </span>
-          </div>
-
-          <div className="relative z-10 text-center">
-
-            <p className="mb-5 font-['Bebas_Neue'] text-[11px] tracking-[0.55em] text-white/60">
-              UNLOCK THE MOMENT
-            </p>
-
-            <h1
+            <div
               className="
-                font-['Bebas_Neue']
-                text-[15vw]
-                leading-[0.72]
-                tracking-[-0.045em]
-                text-white
+                absolute
+                bottom-[9vh]
+                left-[6vw]
+                hidden
+                text-[10px]
+                uppercase
+                tracking-[0.3em]
+                text-black/40
+                md:block
               "
             >
-              SCAN
-            </h1>
-
-            <div className="mx-auto mt-7 h-[2px] w-16 bg-red-500" />
-
-            <p className="mx-auto mt-6 max-w-[320px] text-[13px] leading-6 tracking-wide text-white/65">
-              Scan. Discover. Experience something new.
-            </p>
-
-            {/* minimal scan icon */}
-
-            <div className="mx-auto mt-7 flex h-11 w-11 items-center justify-center rounded-full border border-white/30">
-              <div className="h-4 w-4 rounded-full border border-red-500" />
+              CLASSIC / ORIGINAL
             </div>
 
-          </div>
+            <div className="relative z-10 text-center">
+              <p
+                className="
+                  mb-5
+                  font-['Bebas_Neue']
+                  text-[11px]
+                  tracking-[0.55em]
+                  text-black/45
+                "
+              >
+                THE ORIGINAL
+              </p>
 
-        
+              <h1
+                className="
+                  font-['Bebas_Neue']
+                  text-[17vw]
+                  leading-[0.68]
+                  tracking-[-0.055em]
+                  text-black
+                "
+              >
+                DRINK
+              </h1>
 
-          <span
-            className="
-              absolute
-              bottom-[6vh]
-              right-[6vw]
-              font-['Bebas_Neue']
-              text-[11px]
-              tracking-[0.35em]
-              text-white/40
-            "
-          >
-            02
-          </span>
-        </div>
+              <div
+                className="
+                  mx-auto
+                  mt-8
+                  h-[3px]
+                  w-16
+                  bg-[#D90000]
+                "
+              />
 
+              <p
+                className="
+                  mx-auto
+                  mt-6
+                  max-w-[360px]
+                  text-[13px]
+                  leading-6
+                  tracking-wide
+                  text-black/50
+                "
+              >
+                The unmistakable taste that brings people together.
+              </p>
+            </div>
 
-        {/* =====================================================
-            SLIDE 3 — WIN EXCLUSIVE
-        ===================================================== */}
-
-        <div
-          className="
-            relative
-            flex
-            h-screen
-            w-screen
-            shrink-0
-            items-center
-            justify-center
-            overflow-hidden
-          "
-        >
-          <div className="absolute left-[6vw] top-[7vh] flex items-center gap-3">
-            <span className="h-1.5 w-1.5 rounded-full bg-red-500" />
-
-            <span className="font-['Bebas_Neue'] text-[11px] tracking-[0.45em] text-white/70">
-              COCA-COLA REWARDS
-            </span>
-          </div>
-
-          <div className="relative z-10 text-center">
-
-            <p className="mb-5 font-['Bebas_Neue'] text-[11px] tracking-[0.55em] text-white/60">
-              YOUR MOMENT
-            </p>
-
-            <h1
+            <div
               className="
-                font-['Bebas_Neue']
-                text-[12vw]
-                leading-[0.72]
-                tracking-[-0.045em]
-                text-white
-              "
-            >
-              WIN
-            </h1>
-
-            <h2
-              className="
-                mt-2
-                font-['Bebas_Neue']
-                text-[7vw]
-                leading-none
-                tracking-[-0.035em]
-                text-white/90
-              "
-            >
-              EXCLUSIVE
-            </h2>
-
-            <div className="mx-auto mt-7 h-[2px] w-16 bg-red-500" />
-
-            <p className="mt-6 font-['Bebas_Neue'] text-[11px] tracking-[0.45em] text-white/45">
-              KEEP EXPLORING
-            </p>
-
-          </div>
-
-        
-
-          <span
-            className="
-              absolute
-              bottom-[6vh]
-              right-[6vw]
-              font-['Bebas_Neue']
-              text-[11px]
-              tracking-[0.35em]
-              text-white/40
-            "
-          >
-            03
-          </span>
-        </div>
-
-
-        {/* =====================================================
-            SLIDE 4 — GIFT
-        ===================================================== */}
-
-        <div
-          className="
-            relative
-            flex
-            h-screen
-            w-screen
-            shrink-0
-            items-center
-            justify-center
-            overflow-hidden
-          "
-        >
-          <div className="absolute left-[6vw] top-[7vh] flex items-center gap-3">
-            <span className="h-1.5 w-1.5 rounded-full bg-red-500" />
-
-            <span className="font-['Bebas_Neue'] text-[11px] tracking-[0.45em] text-white/70">
-              SHARE THE FEELING
-            </span>
-          </div>
-
-          <div className="relative z-10 text-center">
-
-            <p className="mb-5 font-['Bebas_Neue'] text-[11px] tracking-[0.55em] text-white/60">
-              MAKE SOMEONE SMILE
-            </p>
-
-            <h1
-              className="
-                font-['Bebas_Neue']
-                text-[15vw]
-                leading-[0.72]
-                tracking-[-0.045em]
-                text-white
-              "
-            >
-              GIFT
-            </h1>
-
-            <div className="mx-auto mt-7 h-[2px] w-16 bg-red-500" />
-
-            <p className="mx-auto mt-6 max-w-[350px] text-[13px] leading-6 tracking-wide text-white/65">
-              Share the feeling. Share the moment. Make someone smile.
-            </p>
-
-            <button
-              className="
-                mt-8
+                absolute
+                right-[6vw]
+                top-[7vh]
+                flex
+                h-10
+                w-10
+                items-center
+                justify-center
                 rounded-full
                 border
-                border-white/30
-                px-7
-                py-3
-                font-['Bebas_Neue']
-                text-xs
-                tracking-[0.35em]
-                text-white
-                transition-all
-                duration-300
-                hover:border-red-500
-                hover:bg-red-600
+                border-black/15
               "
             >
-              EXPLORE
-            </button>
-
+              <ArrowUpRight
+                size={15}
+                strokeWidth={1.5}
+              />
+            </div>
           </div>
 
-         
+          {/* ==================================================
+              SLIDE 2
+          ================================================== */}
 
-          <span
+          <div
             className="
-              absolute
-              bottom-[6vh]
-              right-[6vw]
-              font-['Bebas_Neue']
-              text-[11px]
-              tracking-[0.35em]
-              text-white/40
+              relative
+              flex
+              h-screen
+              w-screen
+              shrink-0
+              items-center
+              justify-center
+              overflow-hidden
             "
           >
-            04
-          </span>
-        </div>
+            <div className="relative z-10 text-center">
+              <p
+                className="
+                  mb-5
+                  font-['Bebas_Neue']
+                  text-[11px]
+                  tracking-[0.55em]
+                  text-black/45
+                "
+              >
+                UNLOCK THE MOMENT
+              </p>
 
+              <h1
+                className="
+                  font-['Bebas_Neue']
+                  text-[17vw]
+                  leading-[0.68]
+                  tracking-[-0.055em]
+                  text-black
+                "
+              >
+                SCAN
+              </h1>
+
+              <div
+                className="
+                  mx-auto
+                  mt-8
+                  h-[3px]
+                  w-16
+                  bg-[#D90000]
+                "
+              />
+
+              <p
+                className="
+                  mx-auto
+                  mt-6
+                  max-w-[320px]
+                  text-[13px]
+                  leading-6
+                  tracking-wide
+                  text-black/50
+                "
+              >
+                Scan. Discover. Experience something new.
+              </p>
+
+              <div
+                className="
+                  mx-auto
+                  mt-8
+                  flex
+                  h-12
+                  w-12
+                  items-center
+                  justify-center
+                  rounded-full
+                  border
+                  border-black/20
+                "
+              >
+                <div
+                  className="
+                    h-4
+                    w-4
+                    rounded-full
+                    border
+                    border-[#D90000]
+                  "
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* ==================================================
+              SLIDE 3
+          ================================================== */}
+
+          <div
+            className="
+              relative
+              flex
+              h-screen
+              w-screen
+              shrink-0
+              items-center
+              justify-center
+              overflow-hidden
+            "
+          >
+            <div
+              className="
+                pointer-events-none
+                absolute
+                left-1/2
+                top-1/2
+                h-[38vw]
+                w-[38vw]
+                -translate-x-1/2
+                -translate-y-1/2
+                rounded-full
+                border
+                border-black/[0.06]
+              "
+            />
+
+            <div
+              className="
+                pointer-events-none
+                absolute
+                left-1/2
+                top-1/2
+                h-[27vw]
+                w-[27vw]
+                -translate-x-1/2
+                -translate-y-1/2
+                rounded-full
+                border
+                border-black/[0.05]
+              "
+            />
+
+            <div className="relative z-10 text-center">
+              <p
+                className="
+                  mb-5
+                  font-['Bebas_Neue']
+                  text-[11px]
+                  tracking-[0.55em]
+                  text-black/45
+                "
+              >
+                YOUR MOMENT
+              </p>
+
+              <h1
+                className="
+                  font-['Bebas_Neue']
+                  text-[15vw]
+                  leading-[0.68]
+                  tracking-[-0.055em]
+                  text-black
+                "
+              >
+                WIN
+              </h1>
+
+              <h2
+                className="
+                  mt-2
+                  font-['Bebas_Neue']
+                  text-[7vw]
+                  leading-none
+                  tracking-[-0.035em]
+                  text-black/75
+                "
+              >
+                EXCLUSIVE
+              </h2>
+
+              <div
+                className="
+                  mx-auto
+                  mt-8
+                  h-[3px]
+                  w-16
+                  bg-[#D90000]
+                "
+              />
+
+              <p
+                className="
+                  mt-6
+                  font-['Bebas_Neue']
+                  text-[11px]
+                  tracking-[0.45em]
+                  text-black/35
+                "
+              >
+                KEEP EXPLORING
+              </p>
+            </div>
+          </div>
+
+          {/* ==================================================
+              SLIDE 4
+          ================================================== */}
+
+          <div
+            className="
+              relative
+              flex
+              h-screen
+              w-screen
+              shrink-0
+              items-center
+              justify-center
+              overflow-hidden
+            "
+          >
+            <div
+              className="
+                pointer-events-none
+                absolute
+                left-1/2
+                top-1/2
+                h-[42vw]
+                w-[42vw]
+                -translate-x-1/2
+                -translate-y-1/2
+                rounded-full
+                border
+                border-black/[0.05]
+              "
+            />
+
+            <div
+              className="
+                pointer-events-none
+                absolute
+                left-1/2
+                top-1/2
+                h-[28vw]
+                w-[28vw]
+                -translate-x-1/2
+                -translate-y-1/2
+                rounded-full
+                border
+                border-black/[0.04]
+              "
+            />
+
+            <div className="relative z-10 text-center">
+              <p
+                className="
+                  mb-5
+                  font-['Bebas_Neue']
+                  text-[11px]
+                  tracking-[0.55em]
+                  text-black/45
+                "
+              >
+                MAKE SOMEONE SMILE
+              </p>
+
+              <h1
+                className="
+                  font-['Bebas_Neue']
+                  text-[17vw]
+                  leading-[0.68]
+                  tracking-[-0.055em]
+                  text-black
+                "
+              >
+                GIFT
+              </h1>
+
+              <div
+                className="
+                  mx-auto
+                  mt-8
+                  h-[3px]
+                  w-16
+                  bg-[#D90000]
+                "
+              />
+
+              <p
+                className="
+                  mx-auto
+                  mt-6
+                  max-w-[350px]
+                  text-[13px]
+                  leading-6
+                  tracking-wide
+                  text-black/50
+                "
+              >
+                Share the feeling. Share the moment. Make someone smile.
+              </p>
+
+              <button
+                className="
+                  group
+                  mt-8
+                  inline-flex
+                  items-center
+                  gap-3
+                  rounded-full
+                  border
+                  border-black/20
+                  bg-black
+                  px-7
+                  py-3
+                  font-['Bebas_Neue']
+                  text-xs
+                  tracking-[0.35em]
+                  text-white
+                  transition-all
+                  duration-300
+                  hover:bg-[#D90000]
+                "
+              >
+                EXPLORE
+
+                <ArrowUpRight
+                  size={14}
+                  className="
+                    transition-transform
+                    duration-300
+                    group-hover:translate-x-1
+                    group-hover:-translate-y-1
+                  "
+                />
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
     </section>
   );
