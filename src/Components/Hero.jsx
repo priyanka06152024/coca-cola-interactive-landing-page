@@ -1,5 +1,12 @@
 
-import React, { useRef } from "react";
+import React, {
+  lazy,
+  Suspense,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
+
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
 
@@ -7,266 +14,299 @@ import { LuLeaf } from "react-icons/lu";
 import { FaGlobe } from "react-icons/fa";
 import { FiUsers } from "react-icons/fi";
 
-import {
-  slideFromLeft,
-  slideFromRight,
-} from "../animations/Animation";
-
 import { Canvas } from "@react-three/fiber";
-import { Environment, Float } from "@react-three/drei";
+import { Environment } from "@react-three/drei";
 
-import Coke3DCan from "../ThreeD/Coke3DCan";
+// --------------------------------------------------
+// LAZY LOAD 3D MODEL
+// --------------------------------------------------
+
+const Coke3DCan = lazy(() => import("../ThreeD/Coke3DCan"));
 
 const Hero = () => {
   const container = useRef(null);
-
-  const leftRef = useRef(null);
-  const rightRef = useRef(null);
-
   const canRef = useRef(null);
   const canWrapRef = useRef(null);
 
-  /*
-  =========================================
-  HERO ANIMATIONS
-  =========================================
-  */
+  const [load3D, setLoad3D] = useState(false);
+  const [canReady, setCanReady] = useState(false);
+
+  // ==================================================
+  // 3D LOAD
+  // Start only after Hero UI has had time to settle
+  // ==================================================
+
+  useEffect(() => {
+    let timer;
+
+    // Give browser enough time to paint Hero first.
+    timer = window.setTimeout(() => {
+      setLoad3D(true);
+    }, 2700);
+
+    return () => {
+      window.clearTimeout(timer);
+    };
+  }, []);
+
+  // ==================================================
+  // HERO UI ANIMATION
+  // Everything is intentionally sequenced.
+  // ==================================================
 
   useGSAP(
     () => {
-      const ctx = gsap.context(() => {
-        /*
-        -------------------------------------
-        INITIAL STATES
-        -------------------------------------
-        */
+      const scope = container.current;
 
-        gsap.set(".hero-content", {
-          opacity: 0,
-          y: 30,
-        });
+      if (!scope) return;
 
-        gsap.set(".hero-card-item", {
-          opacity: 0,
-          y: 18,
-        });
+      const q = gsap.utils.selector(scope);
 
-        gsap.set(".hero-eyebrow", {
-          opacity: 0,
-          y: 15,
-        });
+      // ------------------------------------------------
+      // INITIAL STATES
+      // ------------------------------------------------
 
-        gsap.set(".hero-title-line", {
-          opacity: 0,
-          y: 35,
-        });
+      gsap.set(q(".hero-eyebrow"), {
+        opacity: 0,
+        y: 15,
+      });
 
-        gsap.set(".hero-description", {
-          opacity: 0,
-          y: 20,
-        });
+      gsap.set(q(".hero-title-line"), {
+        opacity: 0,
+        y: 35,
+      });
 
-        gsap.set(".hero-button", {
-          opacity: 0,
-          y: 20,
-        });
+      gsap.set(q(".hero-description"), {
+        opacity: 0,
+        y: 20,
+      });
 
-        /*
-        -------------------------------------
-        BACKGROUND ORIGINAL
-        -------------------------------------
-        */
+      gsap.set(q(".hero-button"), {
+        opacity: 0,
+        y: 20,
+      });
 
-        gsap.fromTo(
-          ".original-letter",
-          {
-            y: "110%",
-          },
-          {
-            y: "0%",
-            duration: 1.4,
-            stagger: 0.07,
-            ease: "power4.out",
-            delay: 0.1,
-          }
-        );
+      gsap.set(q(".hero-card-item"), {
+        opacity: 0,
+        y: 18,
+      });
 
-        /*
-        -------------------------------------
-        LEFT CONTENT
-        -------------------------------------
-        */
+      gsap.set(canWrapRef.current, {
+        opacity: 0,
+        scale: 0.94,
+      });
 
-        const leftTimeline = gsap.timeline({
-          delay: 0.35,
-        });
+      // ==================================================
+      // MASTER TIMELINE
+      // ==================================================
 
-        leftTimeline
-          .to(".hero-eyebrow", {
-            opacity: 1,
-            y: 0,
-            duration: 0.6,
-            ease: "power3.out",
-          })
-          .to(
-            ".hero-title-line",
-            {
-              opacity: 1,
-              y: 0,
-              duration: 0.8,
-              stagger: 0.08,
-              ease: "power4.out",
-            },
-            "-=0.3"
-          )
-          .to(
-            ".hero-description",
-            {
-              opacity: 1,
-              y: 0,
-              duration: 0.7,
-              ease: "power3.out",
-            },
-            "-=0.4"
-          )
-          .to(
-            ".hero-button",
-            {
-              opacity: 1,
-              y: 0,
-              duration: 0.7,
-              ease: "power3.out",
-            },
-            "-=0.35"
-          );
+      const tl = gsap.timeline({
+        defaults: {
+          overwrite: "auto",
+        },
+      });
 
-        /*
-        -------------------------------------
-        RIGHT CARD
-        -------------------------------------
-        */
+      // --------------------------------------------------
+      // 1. ORIGINAL BACKGROUND
+      // --------------------------------------------------
 
-        gsap.to(".hero-card-item", {
+      tl.to(
+        q(".original-letter"),
+        {
+          y: "0%",
+          duration: 1.25,
+          stagger: 0.07,
+          ease: "power4.out",
+        },
+        0
+      );
+
+      // --------------------------------------------------
+      // 2. EYEBROW
+      // --------------------------------------------------
+
+      tl.to(
+        q(".hero-eyebrow"),
+        {
           opacity: 1,
           y: 0,
-          duration: 0.7,
-          stagger: 0.12,
-          delay: 0.65,
+          duration: 0.55,
           ease: "power3.out",
-        });
+        },
+        0.75
+      );
 
-        /*
-        -------------------------------------
-        CAN WRAPPER
-        -------------------------------------
-        */
+      // --------------------------------------------------
+      // 3. HEADING
+      // --------------------------------------------------
 
-        gsap.fromTo(
-          canWrapRef.current,
-          {
-            opacity: 0,
-            scale: 0.94,
-          },
-          {
-            opacity: 1,
-            scale: 1,
-            duration: 0.8,
-            delay: 0.15,
-            ease: "power2.out",
-          }
-        );
-      }, container);
+      tl.to(
+        q(".hero-title-line"),
+        {
+          opacity: 1,
+          y: 0,
+          duration: 0.75,
+          stagger: 0.10,
+          ease: "power4.out",
+        },
+        1.0
+      );
 
-      return () => ctx.revert();
+      // --------------------------------------------------
+      // 4. DESCRIPTION
+      // --------------------------------------------------
+
+      tl.to(
+        q(".hero-description"),
+        {
+          opacity: 1,
+          y: 0,
+          duration: 0.65,
+          ease: "power3.out",
+        },
+        1.55
+      );
+
+      // --------------------------------------------------
+      // 5. BUTTON
+      // --------------------------------------------------
+
+      tl.to(
+        q(".hero-button"),
+        {
+          opacity: 1,
+          y: 0,
+          duration: 0.65,
+          ease: "power3.out",
+        },
+        1.90
+      );
+
+      // --------------------------------------------------
+      // 6. RIGHT CARD
+      // --------------------------------------------------
+
+      tl.to(
+        q(".hero-card-item"),
+        {
+          opacity: 1,
+          y: 0,
+          duration: 0.6,
+          stagger: 0.15,
+          ease: "power3.out",
+        },
+        2.20
+      );
+
+      // --------------------------------------------------
+      // 7. CAN WRAPPER
+      // Canvas itself will load later.
+      // This only prepares the wrapper.
+      // --------------------------------------------------
+
+      tl.to(
+        canWrapRef.current,
+        {
+          opacity: 1,
+          scale: 1,
+          duration: 0.75,
+          ease: "power2.out",
+        },
+        2.60
+      );
+
+      return () => {
+        tl.kill();
+      };
     },
-    { scope: container }
+    {
+      scope: container,
+    }
   );
 
-  /*
-  =========================================
-  3D CAN DROP + SPIN
-  =========================================
-
-  Important:
-  Can animation starts only after component
-  is mounted.
-
-  No repeated animation on re-render.
-  */
+  // ==================================================
+  // CAN DROP + SPIN
+  // Runs ONLY after model is actually ready.
+  // ==================================================
 
   useGSAP(
     () => {
-      if (!canRef.current) return;
-
       const can = canRef.current;
 
-      // Initial position
+      if (!can || !canReady) return;
+
+      // ------------------------------------------------
+      // INITIAL POSITION
+      // ------------------------------------------------
+
       gsap.set(can.position, {
         x: 0,
         y: 5.5,
         z: 0,
       });
 
-      // Initial rotation
+      // ------------------------------------------------
+      // INITIAL ROTATION
+      // ------------------------------------------------
+
       gsap.set(can.rotation, {
         x: 0,
         y: -0.8,
         z: 0,
       });
 
-      /*
-      -------------------------------------
-      CAN ENTRY
-      -------------------------------------
-      */
+      // ------------------------------------------------
+      // CAN TIMELINE
+      // ------------------------------------------------
 
       const canTimeline = gsap.timeline({
         delay: 0.15,
       });
 
-      // Drop
+      // DROP FIRST
       canTimeline.to(
         can.position,
         {
           y: 0,
-          duration: 1.7,
+          duration: 1.65,
           ease: "power3.out",
         },
         0
       );
 
-      // Smooth 360° rotation
+      // ROTATION STARTS SLIGHTLY AFTER DROP
       canTimeline.to(
         can.rotation,
         {
           y: Math.PI * 2 - 0.8,
-          duration: 1.9,
+          duration: 1.8,
           ease: "power2.inOut",
         },
-        0
+        0.12
       );
 
-      /*
-      -------------------------------------
-      SMALL FINAL SETTLE
-      -------------------------------------
-      */
-
+      // FINAL ROTATION SETTLE
       canTimeline.to(
         can.rotation,
         {
           y: Math.PI * 2,
-          duration: 0.35,
+          duration: 0.3,
           ease: "power2.out",
         },
-        "-=0.25"
+        "-=0.18"
       );
 
       return () => {
         canTimeline.kill();
+
+        gsap.killTweensOf(can.position);
+        gsap.killTweensOf(can.rotation);
       };
     },
-    { scope: container }
+    {
+      scope: container,
+      dependencies: [canReady],
+    }
   );
 
   const text = "ORIGINAL";
@@ -303,17 +343,13 @@ const Hero = () => {
             left-1/2
             top-[5%]
             -translate-x-1/2
-
             whitespace-nowrap
-
             font-['Bebas_Neue']
             text-[17vw]
             leading-none
             font-bold
             uppercase
-
             text-red-700/[0.055]
-
             select-none
           "
         >
@@ -333,17 +369,15 @@ const Hero = () => {
           ))}
         </h1>
 
-        {/* Small background circle */}
+        {/* SMALL BACKGROUND CIRCLE */}
 
         <div
           className="
             absolute
             right-[-8vw]
             top-[18%]
-
             h-[22vw]
             w-[22vw]
-
             rounded-full
             border
             border-red-700/[0.07]
@@ -355,18 +389,13 @@ const Hero = () => {
             absolute
             left-[-10vw]
             bottom-[-10vw]
-
             h-[28vw]
             w-[28vw]
-
             rounded-full
             bg-red-700/[0.025]
           "
         />
       </div>
-
-      
-
 
       {/* =====================================
           MAIN HERO
@@ -376,19 +405,15 @@ const Hero = () => {
         className="
           relative
           z-10
-
           mx-auto
           flex
           min-h-screen
           w-full
           max-w-[1600px]
-
           items-center
-
           px-6
           pb-10
           pt-24
-
           lg:px-10
         "
       >
@@ -397,15 +422,12 @@ const Hero = () => {
         ================================= */}
 
         <div
-          ref={leftRef}
           className="
             relative
             z-30
-
             flex
             w-[38%]
             flex-col
-
             pl-1
             lg:pl-4
           "
@@ -416,7 +438,6 @@ const Hero = () => {
             className="
               hero-eyebrow
               mb-4
-
               flex
               items-center
               gap-3
@@ -449,12 +470,10 @@ const Hero = () => {
             <h2
               className="
                 hero-title-line
-
                 font-['Bebas_Neue']
                 text-[7vw]
                 leading-[0.82]
                 tracking-tight
-
                 text-black
               "
             >
@@ -466,12 +485,10 @@ const Hero = () => {
             <h2
               className="
                 hero-title-line
-
                 font-['Bebas_Neue']
                 text-[7vw]
                 leading-[0.82]
                 tracking-tight
-
                 text-red-700
               "
             >
@@ -484,10 +501,8 @@ const Hero = () => {
           <p
             className="
               hero-description
-
               mt-7
               max-w-[330px]
-
               text-[13px]
               leading-6
               text-black/50
@@ -504,35 +519,25 @@ const Hero = () => {
             <button
               className="
                 hero-button
-
                 group
-
                 relative
                 flex
                 h-12
                 w-[170px]
-
                 items-center
                 justify-center
-
                 overflow-hidden
-
                 rounded-full
-
                 border
                 border-red-700
-
                 bg-red-700
-
                 text-[11px]
                 font-semibold
                 uppercase
                 tracking-[0.18em]
                 text-white
-
                 transition-all
                 duration-300
-
                 hover:shadow-[0_15px_40px_rgba(185,28,28,0.22)]
               "
             >
@@ -557,15 +562,11 @@ const Hero = () => {
                   w-8
                   items-center
                   justify-center
-
                   rounded-full
-
                   bg-white
                   text-red-700
-
                   transition-transform
                   duration-300
-
                   group-hover:rotate-45
                 "
               >
@@ -579,19 +580,15 @@ const Hero = () => {
           <div
             className="
               mt-10
-
               flex
               items-center
               gap-4
-
               text-[9px]
               uppercase
               tracking-[0.25em]
               text-black/30
             "
           >
-           
-
             <span className="h-[1px] w-10 bg-black/15" />
 
             <span>Classic Taste</span>
@@ -608,85 +605,81 @@ const Hero = () => {
             absolute
             left-1/2
             top-[50%]
-
             z-20
-
             h-[72vh]
             w-[42vw]
-
             -translate-x-1/2
             -translate-y-1/2
-
             will-change-transform
           "
         >
-          <Canvas
-            camera={{
-              position: [0, 0, 13],
-              fov: 35,
-            }}
-            dpr={[1, 1.5]}
-            gl={{
-              antialias: true,
-              alpha: true,
-              powerPreference: "high-performance",
-            }}
-            frameloop="always"
-          >
-            {/* =============================
-                LIGHTING
-            ============================= */}
+          {load3D && (
+            <Canvas
+              camera={{
+                position: [0, 0, 13],
+                fov: 35,
+              }}
+              dpr={[1, 1.25]}
+              gl={{
+                antialias: true,
+                alpha: true,
+                powerPreference: "high-performance",
+                stencil: false,
+                depth: true,
+              }}
+              frameloop="always"
+            >
+              {/* LIGHTING */}
 
-            <ambientLight intensity={0.65} />
+              <ambientLight intensity={0.65} />
 
-            <directionalLight
-              position={[4, 7, 6]}
-              intensity={2.2}
-            />
+              <directionalLight
+                position={[4, 7, 6]}
+                intensity={2.2}
+              />
 
-            <directionalLight
-              position={[-4, 3, 2]}
-              intensity={1.4}
-            />
+              <directionalLight
+                position={[-4, 3, 2]}
+                intensity={1.4}
+              />
 
-            <pointLight
-              position={[0, 2, 5]}
-              intensity={1}
-              distance={8}
-            />
+              <pointLight
+                position={[0, 2, 5]}
+                intensity={1}
+                distance={8}
+              />
 
-            {/* =============================
-                ENVIRONMENT
-            ============================= */}
+              {/* ENVIRONMENT */}
 
-            <Environment preset="studio" />
+              <Environment
+                preset="studio"
+                resolution={256}
+              />
 
-            {/* =============================
-                CAN
-            ============================= */}
+              {/* CAN */}
 
-            <group ref={canRef}>
-              <Coke3DCan />
-            </group>
-          </Canvas>
+              <group ref={canRef}>
+                <Suspense fallback={null}>
+                  <Coke3DCan
+                    onReady={() => setCanReady(true)}
+                  />
+                </Suspense>
+              </group>
+            </Canvas>
+          )}
 
-          {/* Ground shadow */}
+          {/* GROUND SHADOW */}
 
           <div
             className="
               pointer-events-none
-
               absolute
               bottom-[8%]
               left-1/2
-
               h-[8%]
               w-[35%]
-
               -translate-x-1/2
-
               rounded-[50%]
-
               bg-black/[0.12]
               blur-2xl
             "
@@ -698,44 +691,32 @@ const Hero = () => {
         ================================= */}
 
         <div
-          ref={rightRef}
           className="
             absolute
             right-6
             top-1/2
-
             z-30
-
             w-[25%]
             min-w-[280px]
             max-w-[360px]
-
             -translate-y-1/2
-
             lg:right-10
           "
         >
           <div
             className="
               relative
-
               overflow-hidden
-
               rounded-[28px]
-
               border
               border-black/[0.07]
-
               bg-white/65
-
               p-5
-
               shadow-[0_25px_80px_rgba(0,0,0,0.07)]
-
               backdrop-blur-2xl
             "
           >
-            {/* Card top */}
+            {/* CARD TOP */}
 
             <div
               className="
@@ -777,11 +758,8 @@ const Hero = () => {
                   w-9
                   items-center
                   justify-center
-
                   rounded-full
-
                   bg-red-700
-
                   text-xs
                   text-white
                 "
@@ -790,7 +768,7 @@ const Hero = () => {
               </span>
             </div>
 
-            {/* Items */}
+            {/* ITEMS */}
 
             <div className="space-y-2">
               {/* ITEM 1 */}
@@ -798,25 +776,17 @@ const Hero = () => {
               <div
                 className="
                   hero-card-item
-
                   group
-
                   flex
                   items-center
                   gap-4
-
                   rounded-2xl
-
                   border
                   border-black/[0.05]
-
                   bg-white/55
-
                   p-3
-
                   transition-all
                   duration-300
-
                   hover:-translate-y-1
                   hover:bg-white
                   hover:shadow-lg
@@ -830,12 +800,9 @@ const Hero = () => {
                     shrink-0
                     items-center
                     justify-center
-
                     rounded-full
-
                     border
                     border-red-700/20
-
                     bg-red-700/[0.06]
                   "
                 >
@@ -877,25 +844,17 @@ const Hero = () => {
               <div
                 className="
                   hero-card-item
-
                   group
-
                   flex
                   items-center
                   gap-4
-
                   rounded-2xl
-
                   border
                   border-black/[0.05]
-
                   bg-white/55
-
                   p-3
-
                   transition-all
                   duration-300
-
                   hover:-translate-y-1
                   hover:bg-white
                   hover:shadow-lg
@@ -909,12 +868,9 @@ const Hero = () => {
                     shrink-0
                     items-center
                     justify-center
-
                     rounded-full
-
                     border
                     border-red-700/20
-
                     bg-red-700/[0.06]
                   "
                 >
@@ -956,25 +912,17 @@ const Hero = () => {
               <div
                 className="
                   hero-card-item
-
                   group
-
                   flex
                   items-center
                   gap-4
-
                   rounded-2xl
-
                   border
                   border-black/[0.05]
-
                   bg-white/55
-
                   p-3
-
                   transition-all
                   duration-300
-
                   hover:-translate-y-1
                   hover:bg-white
                   hover:shadow-lg
@@ -988,12 +936,9 @@ const Hero = () => {
                     shrink-0
                     items-center
                     justify-center
-
                     rounded-full
-
                     border
                     border-red-700/20
-
                     bg-red-700/[0.06]
                   "
                 >
@@ -1031,7 +976,7 @@ const Hero = () => {
               </div>
             </div>
 
-            {/* Card footer */}
+            {/* CARD FOOTER */}
 
             <div
               className="
@@ -1039,10 +984,8 @@ const Hero = () => {
                 flex
                 items-center
                 justify-between
-
                 border-t
                 border-black/[0.06]
-
                 pt-4
               "
             >
@@ -1056,8 +999,6 @@ const Hero = () => {
               >
                 Coca-Cola Original
               </span>
-
-              
             </div>
           </div>
         </div>
@@ -1072,15 +1013,11 @@ const Hero = () => {
           absolute
           bottom-7
           left-1/2
-
           z-30
-
           hidden
           -translate-x-1/2
-
           items-center
           gap-3
-
           md:flex
         "
       >
@@ -1102,12 +1039,9 @@ const Hero = () => {
             w-7
             items-center
             justify-center
-
             rounded-full
-
             border
             border-black/10
-
             text-xs
             text-black/40
           "

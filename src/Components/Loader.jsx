@@ -1,5 +1,4 @@
-
-import React, { useEffect, useRef } from "react";
+import React, { useLayoutEffect, useRef } from "react";
 import gsap from "gsap";
 
 const Loader = ({ onComplete }) => {
@@ -9,53 +8,73 @@ const Loader = ({ onComplete }) => {
   const textRef = useRef(null);
   const lineRef = useRef(null);
 
-  useEffect(() => {
-    const ctx = gsap.context(() => {
-      const tl = gsap.timeline({
-        onComplete: () => {
-          if (onComplete) onComplete();
-        },
-      });
+  const onCompleteRef = useRef(onComplete);
 
+  // Keep latest callback without rebuilding the animation
+  useLayoutEffect(() => {
+    onCompleteRef.current = onComplete;
+  }, [onComplete]);
+
+  useLayoutEffect(() => {
+    const loader = loaderRef.current;
+    const circle = circleRef.current;
+    const inner = innerRef.current;
+    const text = textRef.current;
+    const line = lineRef.current;
+
+    if (!loader || !circle || !inner || !text || !line) return;
+
+    const ctx = gsap.context(() => {
       // -----------------------------------
       // INITIAL STATE
       // -----------------------------------
 
-      gsap.set(circleRef.current, {
+      gsap.set(circle, {
         scale: 0,
         rotation: -90,
+        force3D: true,
       });
 
-      gsap.set(innerRef.current, {
+      gsap.set(inner, {
         scale: 0.2,
         opacity: 0,
+        force3D: true,
       });
 
-      gsap.set(textRef.current, {
+      gsap.set(text, {
         y: 30,
         opacity: 0,
         letterSpacing: "0.5em",
+        force3D: true,
       });
 
-      gsap.set(lineRef.current, {
+      gsap.set(line, {
         scaleX: 0,
         transformOrigin: "left center",
+        force3D: true,
       });
 
       // -----------------------------------
-      // RED CIRCLE ENTER
+      // LOADER TIMELINE
       // -----------------------------------
 
-      tl.to(circleRef.current, {
+      const tl = gsap.timeline({
+        onComplete: () => {
+          onCompleteRef.current?.();
+        },
+      });
+
+      // RED CIRCLE ENTER
+      tl.to(circle, {
         scale: 1,
         rotation: 0,
         duration: 1.1,
         ease: "power4.out",
       })
 
-        // Inner white circle
+        // INNER WHITE CIRCLE
         .to(
-          innerRef.current,
+          inner,
           {
             scale: 1,
             opacity: 1,
@@ -65,9 +84,9 @@ const Loader = ({ onComplete }) => {
           "-=0.65"
         )
 
-        // Text reveal
+        // TEXT REVEAL
         .to(
-          textRef.current,
+          text,
           {
             y: 0,
             opacity: 1,
@@ -78,38 +97,38 @@ const Loader = ({ onComplete }) => {
           "-=0.35"
         )
 
-        // Red line
+        // RED LINE
         .to(
-          lineRef.current,
+          line,
           {
             scaleX: 1,
             duration: 1.1,
             ease: "power3.inOut",
           },
           "-=0.35"
-        );
+        )
 
-      // -----------------------------------
-      // HOLD
-      // -----------------------------------
+        // -----------------------------------
+        // HOLD
+        // -----------------------------------
 
-      tl.to({}, {
-        duration: 0.35,
-      });
+        .to({}, {
+          duration: 0.35,
+        })
 
-      // -----------------------------------
-      // BIG RED EXPANSION
-      // -----------------------------------
+        // -----------------------------------
+        // BIG RED EXPANSION
+        // -----------------------------------
 
-      tl.to(circleRef.current, {
-        scale: 7,
-        duration: 1.25,
-        ease: "power4.in",
-      })
+        .to(circle, {
+          scale: 7,
+          duration: 1.25,
+          ease: "power4.in",
+        })
 
-        // Text disappears
+        // TEXT DISAPPEARS
         .to(
-          textRef.current,
+          text,
           {
             opacity: 0,
             y: -20,
@@ -119,9 +138,9 @@ const Loader = ({ onComplete }) => {
           "-=0.8"
         )
 
-        // Inner circle expands
+        // INNER CIRCLE EXPANDS
         .to(
-          innerRef.current,
+          inner,
           {
             scale: 6,
             duration: 1.15,
@@ -130,12 +149,9 @@ const Loader = ({ onComplete }) => {
           "-=1.15"
         )
 
-        // -----------------------------------
         // LOADER EXIT
-        // -----------------------------------
-
         .to(
-          loaderRef.current,
+          loader,
           {
             opacity: 0,
             duration: 0.35,
@@ -143,10 +159,16 @@ const Loader = ({ onComplete }) => {
           },
           "-=0.2"
         );
+
+      return () => {
+        tl.kill();
+      };
     }, loaderRef);
 
-    return () => ctx.revert();
-  }, [onComplete]);
+    return () => {
+      ctx.revert();
+    };
+  }, []);
 
   return (
     <div
@@ -164,9 +186,7 @@ const Loader = ({ onComplete }) => {
         bg-[#F7F5F0]
       "
     >
-      {/* -----------------------------------
-          MAIN RED CIRCLE
-      ----------------------------------- */}
+      {/* MAIN RED CIRCLE */}
 
       <div
         ref={circleRef}
@@ -180,12 +200,11 @@ const Loader = ({ onComplete }) => {
           -translate-y-1/2
           rounded-full
           bg-[#D71920]
+          will-change-transform
         "
       />
 
-      {/* -----------------------------------
-          INNER WHITE CIRCLE
-      ----------------------------------- */}
+      {/* INNER WHITE CIRCLE */}
 
       <div
         ref={innerRef}
@@ -203,12 +222,11 @@ const Loader = ({ onComplete }) => {
           justify-center
           rounded-full
           bg-[#F7F5F0]
+          will-change-transform
         "
       />
 
-      {/* -----------------------------------
-          CENTER CONTENT
-      ----------------------------------- */}
+      {/* CENTER CONTENT */}
 
       <div className="relative z-20 flex flex-col items-center">
         <div className="overflow-hidden">
@@ -220,6 +238,7 @@ const Loader = ({ onComplete }) => {
               uppercase
               leading-none
               text-[#111]
+              will-change-transform
             "
           >
             Coca-Cola
@@ -233,6 +252,7 @@ const Loader = ({ onComplete }) => {
               h-[1px]
               w-full
               bg-[#D71920]
+              will-change-transform
             "
           />
         </div>

@@ -1,74 +1,107 @@
-import React, { useLayoutEffect, useRef } from "react";
+import React, {
+  useLayoutEffect,
+  useRef,
+} from "react";
+
 import * as THREE from "three";
 import gsap from "gsap";
 
 import { useGLTF } from "@react-three/drei";
 import { useFrame } from "@react-three/fiber";
 
-const Coke3DCan = ({ motionRef }) => {
-  const { scene } = useGLTF("/models/Coke_3d_can.glb");
+const MODEL_PATH = "/models/Coke_3d_can.glb";
 
-  const moveRef = useRef();
-  const spinRef = useRef();
+const Coke3DCan = ({ motionRef, onReady }) => {
+  const { scene } = useGLTF(MODEL_PATH);
 
-  // =========================================
-  // CAN INTRO ANIMATION
-  // =========================================
+  const moveRef = useRef(null);
+  const spinRef = useRef(null);
+
+  const introActiveRef = useRef(true);
+
+  const worldPositionRef = useRef(
+    new THREE.Vector3()
+  );
+
+  /*
+  ================================================
+  MODEL READY
+  ================================================
+  */
 
   useLayoutEffect(() => {
-    if (!moveRef.current || !spinRef.current) {
-      return;
-    }
+    if (!scene) return;
 
+    onReady?.();
+  }, [scene, onReady]);
+
+  /*
+  ================================================
+  CAN INTRO
+  ================================================
+  */
+
+  useLayoutEffect(() => {
     const move = moveRef.current;
     const spin = spinRef.current;
 
-    // Kill old animations
+    if (!move || !spin) return;
+
+    introActiveRef.current = true;
+
     gsap.killTweensOf(move.position);
     gsap.killTweensOf(spin.rotation);
 
-    // =======================================
-    // STARTING POSITION
-    // Can screen ke upar se enter karega
-    // =======================================
+    /*
+    INITIAL POSITION
+    */
 
-    move.position.set(0, 5, 0);
+    move.position.set(
+      0,
+      5,
+      0
+    );
 
-    // =======================================
-    // STARTING ROTATION
-    // =======================================
+    /*
+    INITIAL ROTATION
+    */
 
-    spin.rotation.set(0, 0, 0);
+    spin.rotation.set(
+      0,
+      0,
+      0
+    );
 
-    // Visible
     move.visible = true;
 
-    // =======================================
-    // RESET MOTION DATA
-    // =======================================
+    /*
+    MOTION RESET
+    */
 
     if (motionRef?.current) {
-      motionRef.current.canX = 0.5;
-      motionRef.current.canY = 0.5;
+      const motion = motionRef.current;
 
-      motionRef.current.canVelocity = 0;
+      motion.canX = 0.5;
+      motion.canY = 0.5;
 
-      motionRef.current.canDirectionX = 0;
-      motionRef.current.canDirectionY = 0;
+      motion.canVelocity = 0;
 
-      motionRef.current.lastCanX = 0;
-      motionRef.current.lastCanY = 5;
+      motion.canDirectionX = 0;
+      motion.canDirectionY = 0;
+
+      motion.lastCanX = 0.5;
+      motion.lastCanY = 0.5;
     }
 
-    // =======================================
-    // INTRO TIMELINE
-    // =======================================
+    /*
+    INTRO
+    */
 
-    const timeline = gsap.timeline();
-
-    // ---------------------------------------
-    // 1. CAN COMES DOWN
-    // ---------------------------------------
+    const timeline = gsap.timeline({
+      onComplete: () => {
+        introActiveRef.current = false;
+      },
+    });
 
     timeline.to(
       move.position,
@@ -80,10 +113,6 @@ const Coke3DCan = ({ motionRef }) => {
       0
     );
 
-    // ---------------------------------------
-    // 2. CAN SPINS WHILE COMING DOWN
-    // ---------------------------------------
-
     timeline.to(
       spin.rotation,
       {
@@ -93,11 +122,6 @@ const Coke3DCan = ({ motionRef }) => {
       },
       0
     );
-
-    // ---------------------------------------
-    // 3. FINAL PRODUCT POSE
-    // Very subtle tilt
-    // ---------------------------------------
 
     timeline.to(
       spin.rotation,
@@ -110,10 +134,6 @@ const Coke3DCan = ({ motionRef }) => {
       2.2
     );
 
-    // =======================================
-    // CLEANUP
-    // =======================================
-
     return () => {
       timeline.kill();
 
@@ -122,29 +142,30 @@ const Coke3DCan = ({ motionRef }) => {
     };
   }, [motionRef]);
 
-  // =========================================
-  // SEND CAN MOVEMENT TO LIQUID BACKGROUND
-  // =========================================
+  /*
+  ================================================
+  FRAME MOTION
+  ================================================
+  */
 
   useFrame((state, delta) => {
-    if (!moveRef.current || !motionRef?.current) {
+    if (introActiveRef.current) {
       return;
     }
 
     const move = moveRef.current;
-    const motion = motionRef.current;
+    const motion = motionRef?.current;
 
-    // =======================================
-    // WORLD POSITION
-    // =======================================
+    if (!move || !motion) {
+      return;
+    }
 
-    const worldPosition = new THREE.Vector3();
+    const worldPosition =
+      worldPositionRef.current;
 
-    move.getWorldPosition(worldPosition);
-
-    // =======================================
-    // NORMALIZE POSITION
-    // =======================================
+    move.getWorldPosition(
+      worldPosition
+    );
 
     const canX = THREE.MathUtils.clamp(
       0.5 + worldPosition.x / 5,
@@ -158,19 +179,14 @@ const Coke3DCan = ({ motionRef }) => {
       0.95
     );
 
-    // =======================================
-    // PREVIOUS POSITION
-    // =======================================
+    const previousX =
+      motion.lastCanX ?? canX;
 
-    const previousX = motion.lastCanX ?? canX;
-    const previousY = motion.lastCanY ?? canY;
+    const previousY =
+      motion.lastCanY ?? canY;
 
     const dx = canX - previousX;
     const dy = canY - previousY;
-
-    // =======================================
-    // VELOCITY
-    // =======================================
 
     const distance = Math.sqrt(
       dx * dx + dy * dy
@@ -181,58 +197,45 @@ const Coke3DCan = ({ motionRef }) => {
       1
     );
 
-    // =======================================
-    // DIRECTION
-    // =======================================
-
     let directionX = 0;
     let directionY = 0;
 
     if (distance > 0.00001) {
-      directionX = dx / distance;
-      directionY = dy / distance;
+      directionX =
+        dx / distance;
+
+      directionY =
+        dy / distance;
     }
 
-    // =======================================
-    // SMOOTH VELOCITY
-    // =======================================
+    const velocityLerp =
+      Math.min(delta * 10, 1);
+
+    const directionLerp =
+      Math.min(delta * 8, 1);
 
     motion.canVelocity +=
       (velocity - motion.canVelocity) *
-      Math.min(delta * 10, 1);
+      velocityLerp;
 
     motion.canVelocity *= 0.92;
-
-    // =======================================
-    // SAVE POSITION
-    // =======================================
 
     motion.canX = canX;
     motion.canY = canY;
 
-    // =======================================
-    // SMOOTH DIRECTION
-    // =======================================
-
     motion.canDirectionX +=
-      (directionX - motion.canDirectionX) *
-      Math.min(delta * 8, 1);
+      (directionX -
+        motion.canDirectionX) *
+      directionLerp;
 
     motion.canDirectionY +=
-      (directionY - motion.canDirectionY) *
-      Math.min(delta * 8, 1);
-
-    // =======================================
-    // SAVE LAST POSITION
-    // =======================================
+      (directionY -
+        motion.canDirectionY) *
+      directionLerp;
 
     motion.lastCanX = canX;
     motion.lastCanY = canY;
   });
-
-  // =========================================
-  // MODEL
-  // =========================================
 
   return (
     <group
@@ -249,9 +252,5 @@ const Coke3DCan = ({ motionRef }) => {
     </group>
   );
 };
-
-useGLTF.preload(
-  "/models/Coke_3d_can.glb"
-);
 
 export default Coke3DCan;
