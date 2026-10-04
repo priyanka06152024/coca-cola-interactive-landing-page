@@ -42,7 +42,7 @@ const Hero = () => {
     // Give browser enough time to paint Hero first.
     timer = window.setTimeout(() => {
       setLoad3D(true);
-    }, 2700);
+    }, 1500);
 
     return () => {
       window.clearTimeout(timer);
