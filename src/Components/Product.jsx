@@ -18,56 +18,69 @@ gsap.registerPlugin(ScrollTrigger);
 const Product = () => {
   const sectionRef = useRef();
 
-  useGSAP(() => {
-    const section = sectionRef.current;
-    const slides = gsap.utils.toArray(".product-slide");
+ useGSAP(() => {
+  const section = sectionRef.current;
+  const slides = gsap.utils.toArray(".product-slide");
 
-    if (!section || slides.length < 2) return;
+  if (!section || slides.length < 2) return;
 
-    // ----------------------------------------------------
-    // INITIAL POSITION
-    // ----------------------------------------------------
+  // ----------------------------------------------------
+  // INITIAL POSITION
+  // ----------------------------------------------------
 
-    gsap.set(slides[0], {
+  gsap.set(slides[0], {
+    xPercent: 0,
+  });
+
+  slides.slice(1).forEach((slide, index) => {
+    const fromLeft = index % 2 === 0;
+
+    gsap.set(slide, {
+      xPercent: fromLeft ? -100 : 100,
+    });
+  });
+
+  // ----------------------------------------------------
+  // SLOW SCROLL TIMELINE
+  // ----------------------------------------------------
+
+  const tl = gsap.timeline({
+    scrollTrigger: {
+      trigger: section,
+      start: "top top",
+
+      // More scroll distance = slower transitions
+      end: `+=${(slides.length - 1) * 500}vh`,
+
+      // Smoothly follows the scroll
+      scrub: 2.5,
+
+      pin: true,
+      anticipatePin: 1,
+      invalidateOnRefresh: true,
+    },
+  });
+
+  // ----------------------------------------------------
+  // SLIDE TRANSITIONS
+  // ----------------------------------------------------
+
+  slides.slice(1).forEach((slide) => {
+    tl.to(slide, {
       xPercent: 0,
+      duration: 1,
+      ease: "none",
     });
+  });
 
-    slides.slice(1).forEach((slide, index) => {
-      const fromLeft = index % 2 === 0;
+  // ----------------------------------------------------
+  // CLEANUP
+  // ----------------------------------------------------
 
-      gsap.set(slide, {
-        xPercent: fromLeft ? -100 : 100,
-      });
-    });
-
-    // ----------------------------------------------------
-    // SCROLL TIMELINE
-    // ----------------------------------------------------
-
-    const tl = gsap.timeline({
-      scrollTrigger: {
-        trigger: section,
-        start: "top top",
-        end: `+=${(slides.length - 1) * 400}vh`,
-        scrub: 4,
-        pin: true,
-        anticipatePin: 1,
-        invalidateOnRefresh: true,
-      },
-    });
-
-    slides.slice(1).forEach((slide) => {
-      tl.to(slide, {
-        xPercent: 0,
-        duration: 1,
-        ease: "none",
-      });
-    });
-
-    return () => {
-      tl.kill();
-    };
-  }, []);
+  return () => {
+    tl.kill();
+  };
+}, []);
 
   return (
     <section ref={sectionRef} className="relative w-full bg-[#F7F5F0]">
