@@ -48,8 +48,8 @@ const Product = () => {
       scrollTrigger: {
         trigger: section,
         start: "top top",
-        end: `+=${(slides.length - 1) * 100}vh`,
-        scrub: 1.2,
+        end: `+=${(slides.length - 1) * 200}vh`,
+        scrub: 2,
         pin: true,
         anticipatePin: 1,
         invalidateOnRefresh: true,
