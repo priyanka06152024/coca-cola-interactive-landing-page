@@ -48,7 +48,7 @@ const Product = () => {
       scrollTrigger: {
         trigger: section,
         start: "top top",
-        end: `+=${(slides.length - 1) * 200}vh`,
+        end: `+=${(slides.length - 1) * 300}vh`,
         scrub: 2,
         pin: true,
         anticipatePin: 1,
